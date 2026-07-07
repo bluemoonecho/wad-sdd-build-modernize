@@ -778,3 +778,47 @@ At this point the artifacts you produced in earlier phases pay off again: the ar
 - Wire up secrets, config, observability and health checks.
 - Define the promotion path — dev → staging → production — and the rollback path.
 - Run the strangler-fig cutover from phase 3b behind whatever traffic-shifting mechanism your platform provides.
+
+## 4.6 Hands-on: modernize a legacy application
+
+I prepared a java legacy application for you to modernize. You can find it [here](https://github.com/jkordick/training-java-monolith-refactor). Based on this example we will apply through the different phases with the help of SDD. For each phase we will do a separate SDD loop.
+
+After cloning the repository initialize spec-kit as done before in chapter 3.1.
+
+Then run **one spec-kit loop per phase**. Each phase's kick-off is a single `/speckit.specify` prompt — spec-kit takes it from there through `/speckit.plan`, `/speckit.tasks` and `/speckit.implement`. Keep prompts short: state the phase's goal, the inputs to read, the output artifact, and one guardrail. Answer clarifying questions as they come.
+
+### Phase 1 — Rediscovery
+
+```text
+/speckit.specify Reverse-engineer this legacy Java monolith. Read the source, tests and any docs. Produce a rediscovery spec covering: (1) business rules in plain English with concrete examples, (2) the data model — entities, relationships, invariants (including those enforced only by defensive code or DB constraints), (3) an integration inventory (every external system, filesystem path, hard-coded endpoint), (4) an open-questions list for anything you cannot resolve from the code alone. Do not propose changes and do not write code. Stop and ask before guessing behavior.
+```
+
+### Phase 2 — Substitution audit
+
+```text
+/speckit.specify Read the rediscovery spec from phase 1. Produce a substitution audit: for each rediscovered element decide keep-as-is, replace-with-library, replace-with-platform, or retire. Cover home-grown code with modern equivalents, integrations that have moved on, data stores that no longer fit, EOL runtimes/frameworks, and operational assumptions that don't survive in the cloud. Output a table with columns: legacy element, proposal, reason, trade-off. Do not design the new architecture.
+```
+
+### Phase 3a — Re-architecture
+
+```text
+/speckit.specify Read the rediscovery spec (phase 1) and the substitution audit (phase 2). Produce a target architecture spec for the modernized system covering: target runtime and platform, module/service boundaries with justifications tied to business rules, data model and migration path from the legacy schema, integration contracts replacing each flagged legacy integration, cross-cutting concerns (auth, logging, config, secrets, observability), migration strategy (default to strangler-fig), and risks. Do not write code.
+```
+
+### Phase 3b — Re-write
+
+```text
+/speckit.specify Read the rediscovery spec, substitution audit and target architecture. Produce a re-write spec for the first module to migrate. Every functional requirement must map to a behavior-preserving acceptance test derived from phase 1's business rules. Route the new implementation behind the same interface as the legacy code so traffic can be switched gradually. If a business rule is ambiguous or missing, stop and ask — never invent behavior.
+```
+
+Repeat phase 3b module by module until the legacy code path is empty.
+
+### Phase 4 (optional) — CI/CD and deployment
+
+```text
+/speckit.specify Read the target architecture (phase 3a) and the current build/test setup. Produce a deployment spec covering: CI pipeline (build, test, scan), infrastructure-as-code for the platform chosen in phase 3a, secrets/config/observability wiring, promotion path dev → staging → production, rollback path, and the strangler-fig traffic-shifting mechanism for the modules rewritten in phase 3b. Do not deploy yet.
+```
+
+
+
+
