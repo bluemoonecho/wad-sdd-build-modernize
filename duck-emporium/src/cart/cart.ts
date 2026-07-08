@@ -1,4 +1,8 @@
-import { getDuckDetailById, getDuckStockCountById } from '../catalog/catalog';
+import {
+  getDuckDetailById,
+  getDuckStockCountById,
+  type CatalogDataSourceOptions,
+} from '../catalog/catalog';
 
 export interface CartLineItem {
   duckId: string;
@@ -43,6 +47,8 @@ export class InvalidCartQuantityError extends Error {
 }
 
 export class CartSession {
+  constructor(private readonly catalogOptions?: CatalogDataSourceOptions) {}
+
   private readonly lineItems = new Map<string, number>();
 
   addDuck(duckId: string, quantity = 1): CartSnapshot {
@@ -78,10 +84,15 @@ export class CartSession {
     return this.getSnapshot();
   }
 
+  clear(): CartSnapshot {
+    this.lineItems.clear();
+    return this.getSnapshot();
+  }
+
   getSnapshot(): CartSnapshot {
     const items = [...this.lineItems.entries()]
       .map(([duckId, quantity]) => {
-        const detail = getDuckDetailById(duckId);
+        const detail = getDuckDetailById(duckId, this.catalogOptions);
         const lineTotal = detail.price * quantity;
 
         return {
@@ -103,7 +114,7 @@ export class CartSession {
   }
 
   private ensureInStock(duckId: string, requestedQuantity: number): void {
-    const stockCount = getDuckStockCountById(duckId);
+    const stockCount = getDuckStockCountById(duckId, this.catalogOptions);
 
     if (requestedQuantity > stockCount) {
       throw new CartStockExceededError(duckId, requestedQuantity, stockCount);

@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
-import { DuckNotFoundError, getDuckDetailById, listDucks } from './catalog';
+import {
+  CATALOG_EMPTY_STATE_MESSAGE,
+  DuckNotFoundError,
+  getDuckDetailById,
+  listDucks,
+  searchCatalog,
+} from './catalog';
 
 describe('catalog', () => {
   it('contains at least 10 ducks across at least 3 categories', () => {
@@ -62,5 +68,65 @@ describe('catalog', () => {
       const detail = getDuckDetailById(duck.id);
       expect(detail.id).toBe(duck.id);
     }
+  });
+
+  it('supports free-text search across name, tagline, and long description (case-insensitive)', () => {
+    const byName = searchCatalog({ query: 'captain' });
+    const byTagline = searchCatalog({ query: 'mirror-ball energy' });
+    const byDescription = searchCatalog({ query: 'MOONLIGHT' });
+
+    expect(byName.ducks.some((duck) => duck.id === 'captain-quack')).toBe(true);
+    expect(byTagline.ducks.some((duck) => duck.id === 'disco-feather')).toBe(true);
+    expect(byDescription.ducks.some((duck) => duck.id === 'midnight-quacker')).toBe(true);
+  });
+
+  it('filters by one or more categories', () => {
+    const partyOnly = searchCatalog({ categories: ['Party'] });
+    const classicAndLuxury = searchCatalog({ categories: ['Classic', 'Luxury'] });
+
+    expect(partyOnly.ducks.length).toBeGreaterThan(0);
+    expect(partyOnly.ducks.every((duck) => duck.category === 'Party')).toBe(true);
+
+    expect(classicAndLuxury.ducks.length).toBeGreaterThan(0);
+    expect(
+      classicAndLuxury.ducks.every((duck) => ['Classic', 'Luxury'].includes(duck.category)),
+    ).toBe(true);
+  });
+
+  it('filters by optional minimum and maximum price bounds', () => {
+    const minimumOnly = searchCatalog({ minPrice: 15 });
+    const maximumOnly = searchCatalog({ maxPrice: 6 });
+    const bounded = searchCatalog({ minPrice: 6, maxPrice: 10 });
+
+    expect(minimumOnly.ducks.length).toBeGreaterThan(0);
+    expect(minimumOnly.ducks.every((duck) => duck.price >= 15)).toBe(true);
+
+    expect(maximumOnly.ducks.length).toBeGreaterThan(0);
+    expect(maximumOnly.ducks.every((duck) => duck.price <= 6)).toBe(true);
+
+    expect(bounded.ducks.length).toBeGreaterThan(0);
+    expect(bounded.ducks.every((duck) => duck.price >= 6 && duck.price <= 10)).toBe(true);
+  });
+
+  it('composes free-text, category, and price filters together using AND logic', () => {
+    const result = searchCatalog({
+      query: 'calm',
+      categories: ['Adventure'],
+      minPrice: 8,
+      maxPrice: 9,
+    });
+
+    expect(result.ducks.map((duck) => duck.id)).toEqual(['lilypad-louie']);
+  });
+
+  it('returns a friendly empty-state message when no duck matches filters', () => {
+    const result = searchCatalog({
+      query: 'existential submarine philosopher king',
+      categories: ['Party'],
+      minPrice: 500,
+    });
+
+    expect(result.ducks).toHaveLength(0);
+    expect(result.emptyStateMessage).toBe(CATALOG_EMPTY_STATE_MESSAGE);
   });
 });
