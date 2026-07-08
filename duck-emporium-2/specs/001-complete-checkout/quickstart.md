@@ -26,7 +26,7 @@ npm run start:api
 3. In a second terminal, keep this base URL ready:
 
 ```bash
-export BASE_URL=http://localhost:3000
+export BASE_URL=http://localhost:4444
 ```
 
 ## Validation Scenarios

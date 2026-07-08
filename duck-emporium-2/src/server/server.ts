@@ -439,7 +439,7 @@ export function createCatalogApiServer(options?: CreateCatalogApiServerOptions) 
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
-  const port = Number(process.env.PORT ?? '3000');
+  const port = Number(process.env.PORT ?? '4444');
   const server = createCatalogApiServer();
 
   server.listen(port, () => {
