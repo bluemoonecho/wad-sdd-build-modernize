@@ -40,6 +40,16 @@ function readCatalog(): DuckRecord[] {
   return JSON.parse(rawCatalog) as DuckRecord[];
 }
 
+function getDuckRecordById(duckId: string): DuckRecord {
+  const duck = readCatalog().find((candidate) => candidate.id === duckId);
+
+  if (!duck) {
+    throw new DuckNotFoundError(duckId);
+  }
+
+  return duck;
+}
+
 function toStockLevel(stockCount: number): StockLevel {
   if (stockCount <= 0) {
     return 'Sold out';
@@ -63,11 +73,7 @@ export function listDucks(): DuckSummary[] {
 }
 
 export function getDuckDetailById(duckId: string): DuckDetail {
-  const duck = readCatalog().find((candidate) => candidate.id === duckId);
-
-  if (!duck) {
-    throw new DuckNotFoundError(duckId);
-  }
+  const duck = getDuckRecordById(duckId);
 
   const { stockCount, ...duckWithoutStockCount } = duck;
 
@@ -75,4 +81,8 @@ export function getDuckDetailById(duckId: string): DuckDetail {
     ...duckWithoutStockCount,
     stockLevel: toStockLevel(stockCount),
   };
+}
+
+export function getDuckStockCountById(duckId: string): number {
+  return getDuckRecordById(duckId).stockCount;
 }
