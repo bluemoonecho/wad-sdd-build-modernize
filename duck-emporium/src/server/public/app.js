@@ -45,6 +45,15 @@ async function fetchJson(url, options = {}) {
   return body;
 }
 
+function renderImage(duck, className) {
+  if (!duck.imageUrl) {
+    return '';
+  }
+
+  const alt = duck.name ? `${duck.name} photo` : 'Duck photo';
+  return `<img src="${duck.imageUrl}" alt="${alt}" class="${className}" loading="lazy" />`;
+}
+
 function renderCatalog(ducks, emptyStateMessage) {
   el.catalogGrid.innerHTML = '';
 
@@ -60,6 +69,7 @@ function renderCatalog(ducks, emptyStateMessage) {
     const card = document.createElement('article');
     card.className = 'card';
     card.innerHTML = `
+      ${renderImage(duck, 'duck-thumb')}
       <h3>${duck.name}</h3>
       <p class="card-meta">${duck.category} · $${duck.price.toFixed(2)}</p>
       <p>${duck.tagline}</p>
@@ -80,6 +90,7 @@ function renderDuckOfTheDay(payload) {
   }
 
   el.duckDayContent.innerHTML = `
+    ${renderImage(payload.duck, 'duck-day-image')}
     <div>
       <h3>${payload.duck.name}</h3>
       <p>${payload.duck.tagline}</p>
@@ -98,6 +109,7 @@ function renderDetail(detail) {
 
   el.detailContent.classList.remove('muted');
   el.detailContent.innerHTML = `
+    ${renderImage(detail, 'duck-detail-image')}
     <h3>${detail.name}</h3>
     <p class="card-meta">${detail.category} · $${detail.price.toFixed(2)} · ${detail.stockLevel}</p>
     <p>${detail.longDescription}</p>

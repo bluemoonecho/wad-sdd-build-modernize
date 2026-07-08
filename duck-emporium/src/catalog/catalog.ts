@@ -8,6 +8,7 @@ export interface DuckSummary {
   category: string;
   price: number;
   tagline: string;
+  imageUrl?: string;
 }
 
 export interface DuckRecord extends DuckSummary {
@@ -181,12 +182,13 @@ function getUtcDayNumber(date: Date): number {
 }
 
 export function listDucks(options?: CatalogDataSourceOptions): DuckSummary[] {
-  return readCatalog(options).map(({ id, name, category, price, tagline }) => ({
+  return readCatalog(options).map(({ id, name, category, price, tagline, imageUrl }) => ({
     id,
     name,
     category,
     price,
     tagline,
+    imageUrl,
   }));
 }
 
