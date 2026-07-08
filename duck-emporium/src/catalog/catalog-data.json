@@ -1,0 +1,72 @@
+[
+  {
+    "id": "classic-yellow",
+    "name": "Classic Yellow Duck",
+    "category": "Classic",
+    "price": 4.99,
+    "tagline": "The dependable bath-time original."
+  },
+  {
+    "id": "captain-quack",
+    "name": "Captain Quack",
+    "category": "Adventure",
+    "price": 9.5,
+    "tagline": "Ready to helm the roughest bubbles."
+  },
+  {
+    "id": "disco-feather",
+    "name": "Disco Feather",
+    "category": "Party",
+    "price": 12,
+    "tagline": "Brings the mirror-ball energy to every soak."
+  },
+  {
+    "id": "lilypad-louie",
+    "name": "Lily Pad Louie",
+    "category": "Adventure",
+    "price": 8.25,
+    "tagline": "Calm on the surface, bold underneath."
+  },
+  {
+    "id": "rose-gold-river",
+    "name": "Rose Gold River",
+    "category": "Luxury",
+    "price": 18,
+    "tagline": "A polished duck for the discerning collector."
+  },
+  {
+    "id": "midnight-quacker",
+    "name": "Midnight Quacker",
+    "category": "Luxury",
+    "price": 16.75,
+    "tagline": "Sleek, quiet, and a little dramatic."
+  },
+  {
+    "id": "sprinkles-mcfloat",
+    "name": "Sprinkles McFloat",
+    "category": "Party",
+    "price": 7.4,
+    "tagline": "Confetti attitude in duck form."
+  },
+  {
+    "id": "trailblazer-tim",
+    "name": "Trailblazer Tim",
+    "category": "Adventure",
+    "price": 11.1,
+    "tagline": "Built for puddles beyond the paved path."
+  },
+  {
+    "id": "bubble-tea-bella",
+    "name": "Bubble Tea Bella",
+    "category": "Party",
+    "price": 6.95,
+    "tagline": "Sweet, playful, and ready to celebrate."
+  },
+  {
+    "id": "storybook-sam",
+    "name": "Storybook Sam",
+    "category": "Classic",
+    "price": 5.75,
+    "tagline": "A gentle companion for everyday bath lore."
+  }
+]
