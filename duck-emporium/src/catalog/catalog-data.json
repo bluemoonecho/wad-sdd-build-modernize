@@ -7,8 +7,15 @@
     "tagline": "The dependable bath-time original.",
     "imageUrl": "https://ducks.now/duck/16/view/",
     "longDescription": "Raised in the oldest tubs of Quackford, Classic Yellow still believes every bath is a small adventure. Reliable, cheerful, and impossible to dislike.",
-    "personalityTraits": ["friendly", "steady", "optimistic"],
-    "specialPowers": ["morale boost", "squeak of encouragement"],
+    "personalityTraits": [
+      "friendly",
+      "steady",
+      "optimistic"
+    ],
+    "specialPowers": [
+      "morale boost",
+      "squeak of encouragement"
+    ],
     "stockCount": 12
   },
   {
@@ -19,9 +26,16 @@
     "tagline": "Ready to helm the roughest bubbles.",
     "imageUrl": "https://ducks.now/duck/7/view/",
     "longDescription": "Captain Quack charted foam currents across seven bathrooms and one suspiciously large sink. Every voyage ends with a victorious splash.",
-    "personalityTraits": ["brave", "decisive", "dramatic"],
-    "specialPowers": ["storm-proof float", "bubble navigation"],
-    "stockCount": 7
+    "personalityTraits": [
+      "brave",
+      "decisive",
+      "dramatic"
+    ],
+    "specialPowers": [
+      "storm-proof float",
+      "bubble navigation"
+    ],
+    "stockCount": 6
   },
   {
     "id": "disco-feather",
@@ -31,8 +45,15 @@
     "tagline": "Brings the mirror-ball energy to every soak.",
     "imageUrl": "https://ducks.now/duck/47/view/",
     "longDescription": "Disco Feather was discovered under a spinning light in the city of Sudsville. This duck can turn quiet bath time into a full dance finale.",
-    "personalityTraits": ["sparkly", "outgoing", "playful"],
-    "specialPowers": ["rhythm splash", "glitter aura"],
+    "personalityTraits": [
+      "sparkly",
+      "outgoing",
+      "playful"
+    ],
+    "specialPowers": [
+      "rhythm splash",
+      "glitter aura"
+    ],
     "stockCount": 2
   },
   {
@@ -43,8 +64,15 @@
     "tagline": "Calm on the surface, bold underneath.",
     "imageUrl": "https://ducks.now/duck/39/view/",
     "longDescription": "Louie spent years drifting between hidden garden ponds, mastering stillness and sudden action. He is the duck equivalent of a quiet hero.",
-    "personalityTraits": ["calm", "strategic", "kind"],
-    "specialPowers": ["silent glide", "lily leap"],
+    "personalityTraits": [
+      "calm",
+      "strategic",
+      "kind"
+    ],
+    "specialPowers": [
+      "silent glide",
+      "lily leap"
+    ],
     "stockCount": 9
   },
   {
@@ -55,8 +83,15 @@
     "tagline": "A polished duck for the discerning collector.",
     "imageUrl": "https://ducks.now/duck/20/view/",
     "longDescription": "Rose Gold River trained in the grand spas of Highbubble Heights. Graceful and composed, this duck adds instant elegance to any shelf.",
-    "personalityTraits": ["refined", "confident", "graceful"],
-    "specialPowers": ["sparkle shield", "luxury calm"],
+    "personalityTraits": [
+      "refined",
+      "confident",
+      "graceful"
+    ],
+    "specialPowers": [
+      "sparkle shield",
+      "luxury calm"
+    ],
     "stockCount": 0
   },
   {
@@ -67,8 +102,15 @@
     "tagline": "Sleek, quiet, and a little dramatic.",
     "imageUrl": "https://ducks.now/duck/22/view/",
     "longDescription": "By moonlight, Midnight Quacker patrols the tub edge and keeps chaos in check. Mysterious, stylish, and always ready for a dramatic reveal.",
-    "personalityTraits": ["mysterious", "focused", "cool-headed"],
-    "specialPowers": ["night vision", "stealth float"],
+    "personalityTraits": [
+      "mysterious",
+      "focused",
+      "cool-headed"
+    ],
+    "specialPowers": [
+      "night vision",
+      "stealth float"
+    ],
     "stockCount": 5
   },
   {
@@ -79,8 +121,15 @@
     "tagline": "Confetti attitude in duck form.",
     "imageUrl": "https://ducks.now/duck/26/view/",
     "longDescription": "Sprinkles McFloat once hosted a 72-hour bath party and never lost energy. This duck believes every splash deserves applause.",
-    "personalityTraits": ["joyful", "energetic", "loud"],
-    "specialPowers": ["confetti wake", "party horn quack"],
+    "personalityTraits": [
+      "joyful",
+      "energetic",
+      "loud"
+    ],
+    "specialPowers": [
+      "confetti wake",
+      "party horn quack"
+    ],
     "stockCount": 11
   },
   {
@@ -91,8 +140,15 @@
     "tagline": "Built for puddles beyond the paved path.",
     "imageUrl": "https://ducks.now/duck/4/view/",
     "longDescription": "Tim mapped forgotten splash routes through rivers, puddles, and one gigantic rain barrel. He thrives where other ducks hesitate.",
-    "personalityTraits": ["adventurous", "resilient", "curious"],
-    "specialPowers": ["terrain bounce", "trail finding"],
+    "personalityTraits": [
+      "adventurous",
+      "resilient",
+      "curious"
+    ],
+    "specialPowers": [
+      "terrain bounce",
+      "trail finding"
+    ],
     "stockCount": 6
   },
   {
@@ -103,9 +159,16 @@
     "tagline": "Sweet, playful, and ready to celebrate.",
     "imageUrl": "https://ducks.now/duck/5/view/",
     "longDescription": "Bella was inspired by tea shop chatter and the joy of tiny pearls popping to the surface. She brings cozy vibes to every bath.",
-    "personalityTraits": ["charming", "social", "lighthearted"],
-    "specialPowers": ["comfort quack", "foam swirl"],
-    "stockCount": 3
+    "personalityTraits": [
+      "charming",
+      "social",
+      "lighthearted"
+    ],
+    "specialPowers": [
+      "comfort quack",
+      "foam swirl"
+    ],
+    "stockCount": 2
   },
   {
     "id": "storybook-sam",
@@ -115,8 +178,15 @@
     "tagline": "A gentle companion for everyday bath lore.",
     "imageUrl": "https://ducks.now/duck/25/view/",
     "longDescription": "Sam keeps a tiny notebook of heroic bath legends and bedtime tales. If you need a calm ending to your day, Sam is ready.",
-    "personalityTraits": ["gentle", "thoughtful", "imaginative"],
-    "specialPowers": ["story spark", "calm current"],
+    "personalityTraits": [
+      "gentle",
+      "thoughtful",
+      "imaginative"
+    ],
+    "specialPowers": [
+      "story spark",
+      "calm current"
+    ],
     "stockCount": 8
   }
 ]

@@ -185,6 +185,12 @@ function setQuizResult(message, isError = false) {
   el.quizResult.classList.add(isError ? 'error' : 'success');
 }
 
+function setQuizResultContent(content, isError = false) {
+  el.quizResult.innerHTML = content;
+  el.quizResult.classList.remove('hidden', 'error', 'success');
+  el.quizResult.classList.add(isError ? 'error' : 'success');
+}
+
 async function loadCatalog() {
   clearGlobalError();
   const params = new URLSearchParams();
@@ -355,9 +361,24 @@ async function submitQuiz() {
       body: JSON.stringify({ answers }),
     });
 
-    setQuizResult(
-      `${result.message} Recommended: ${result.duck.name}. Open detail: ${result.detailPath}`,
-    );
+    const detailButton = result.detailPath
+      ? '<button class="link-btn quiz-detail-link" type="button">Open detail</button>'
+      : '';
+
+    setQuizResultContent(`
+      <div class="quiz-result-card">
+        ${renderImage(result.duck, 'quiz-result-image')}
+        <div>
+          <p><strong>${result.duck.name}</strong></p>
+          <p>${result.message}</p>
+          ${detailButton}
+        </div>
+      </div>
+    `);
+
+    document.querySelector('.quiz-detail-link')?.addEventListener('click', () => {
+      loadDuckDetail(result.duck.id);
+    });
   } catch (error) {
     setQuizResult(error instanceof Error ? error.message : 'Quiz failed.', true);
   }

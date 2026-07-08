@@ -293,6 +293,26 @@ select {
   font-weight: 700;
 }
 
+.quiz-result-card {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 0.7rem;
+  align-items: center;
+}
+
+.quiz-result-image {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: 10px;
+}
+
+@media (max-width: 700px) {
+  .quiz-result-card {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 980px) {
   .layout > .panel:nth-child(2),
   .layout > .panel:nth-child(3),

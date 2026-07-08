@@ -273,12 +273,13 @@ export function getDuckOfTheDay(
 ): DuckOfDayResult {
   const inStockDucks = readCatalog(options)
     .filter((duck) => duck.stockCount > 0)
-    .map(({ id, name, category, price, tagline }) => ({
+    .map(({ id, name, category, price, tagline, imageUrl }) => ({
       id,
       name,
       category,
       price,
       tagline,
+      imageUrl,
     }));
 
   if (inStockDucks.length === 0) {
