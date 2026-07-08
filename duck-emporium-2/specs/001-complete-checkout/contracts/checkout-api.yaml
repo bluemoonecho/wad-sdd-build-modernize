@@ -1,0 +1,251 @@
+openapi: 3.0.3
+info:
+  title: Duck Emporium Checkout API
+  version: 1.0.0
+  description: Contract for cart checkout with mocked payment and stock-safe order creation.
+
+paths:
+  /cart:
+    get:
+      summary: Get current cart snapshot
+      responses:
+        '200':
+          description: Current cart data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cart'
+
+  /cart/items:
+    post:
+      summary: Add item to cart
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddCartItemRequest'
+      responses:
+        '200':
+          description: Updated cart snapshot
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cart'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+
+  /cart/items/{duckId}:
+    patch:
+      summary: Set quantity for one cart line item
+      parameters:
+        - name: duckId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SetCartItemQuantityRequest'
+      responses:
+        '200':
+          description: Updated cart snapshot
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cart'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      summary: Remove one cart line item
+      parameters:
+        - name: duckId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Updated cart snapshot
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cart'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+
+  /checkout:
+    post:
+      summary: Submit checkout
+      description: |
+        Validates checkout input, re-validates stock for all cart items,
+        decrements stock atomically, persists an order, clears cart,
+        and returns confirmation data.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CheckoutRequest'
+      responses:
+        '200':
+          description: Order confirmed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderConfirmation'
+        '400':
+          description: Validation or empty cart failure
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                invalidEmail:
+                  value:
+                    error: A valid shipping email is required.
+                emptyCart:
+                  value:
+                    error: Cannot checkout an empty cart.
+        '409':
+          description: Stock conflict during checkout
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                outOfStock:
+                  value:
+                    error: Requested quantity exceeds available stock for selected duck.
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  responses:
+    ValidationError:
+      description: Invalid request data
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    StockConflict:
+      description: Requested quantity exceeds available stock
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFound:
+      description: Requested item not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+  schemas:
+    ErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string
+
+    AddCartItemRequest:
+      type: object
+      required: [duckId]
+      properties:
+        duckId:
+          type: string
+        quantity:
+          type: integer
+          minimum: 1
+          default: 1
+
+    SetCartItemQuantityRequest:
+      type: object
+      required: [quantity]
+      properties:
+        quantity:
+          type: integer
+          minimum: 0
+
+    CheckoutRequest:
+      type: object
+      required:
+        - shippingName
+        - shippingEmail
+        - shippingAddress
+        - mockedCardDetails
+      properties:
+        shippingName:
+          type: string
+          minLength: 1
+        shippingEmail:
+          type: string
+          format: email
+        shippingAddress:
+          type: string
+          minLength: 1
+        mockedCardDetails:
+          type: string
+          minLength: 1
+
+    OrderConfirmation:
+      type: object
+      required: [orderId, timestamp, summary]
+      properties:
+        orderId:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        summary:
+          type: object
+          required: [items, total]
+          properties:
+            items:
+              type: array
+              items:
+                $ref: '#/components/schemas/CartLineItem'
+            total:
+              type: number
+              minimum: 0
+
+    Cart:
+      type: object
+      required: [items, runningTotal]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/CartLineItem'
+        runningTotal:
+          type: number
+          minimum: 0
+
+    CartLineItem:
+      type: object
+      required: [duckId, name, unitPrice, quantity, lineTotal]
+      properties:
+        duckId:
+          type: string
+        name:
+          type: string
+        unitPrice:
+          type: number
+          minimum: 0
+        quantity:
+          type: integer
+          minimum: 1
+        lineTotal:
+          type: number
+          minimum: 0
