@@ -36,3 +36,24 @@ Fetch the daily featured duck:
 curl -s http://localhost:3000/duck-of-the-day
 
 Response includes a deterministic duck for the calendar day, a detail link path, or a friendly fallback when all ducks are sold out.
+
+## Story 8 personality quiz endpoints
+
+Fetch quiz questions:
+
+curl -s http://localhost:3000/quiz/questions
+
+Submit answers and receive a deterministic recommendation:
+
+curl -s -X POST http://localhost:3000/quiz/result \
+  -H "Content-Type: application/json" \
+  -d '{
+    "answers": [
+      {"questionId": "q1", "optionId": "q1a"},
+      {"questionId": "q2", "optionId": "q2a"},
+      {"questionId": "q3", "optionId": "q3a"},
+      {"questionId": "q4", "optionId": "q4a"},
+      {"questionId": "q5", "optionId": "q5a"},
+      {"questionId": "q6", "optionId": "q6a"}
+    ]
+  }'

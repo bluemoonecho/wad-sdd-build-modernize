@@ -8,6 +8,7 @@ import {
   type CatalogDataSourceOptions,
   type CreateDuckInput,
 } from '../catalog/catalog';
+import { evaluateQuiz, getQuizQuestions, QuizValidationError, type QuizAnswer } from '../quiz/quiz';
 
 interface ErrorResponseBody {
   error: string;
@@ -70,6 +71,31 @@ function toCreateDuckInput(payload: unknown): CreateDuckInput {
   };
 }
 
+function toQuizAnswers(payload: unknown): QuizAnswer[] {
+  if (!payload || typeof payload !== 'object') {
+    throw new QuizValidationError('Request body must be a JSON object.');
+  }
+
+  const candidate = payload as Record<string, unknown>;
+
+  if (!Array.isArray(candidate.answers)) {
+    throw new QuizValidationError('answers must be an array.');
+  }
+
+  return candidate.answers.map((answer) => {
+    if (!answer || typeof answer !== 'object') {
+      throw new QuizValidationError('Each answer must be an object with questionId and optionId.');
+    }
+
+    const answerRecord = answer as Record<string, unknown>;
+
+    return {
+      questionId: String(answerRecord.questionId ?? ''),
+      optionId: String(answerRecord.optionId ?? ''),
+    };
+  });
+}
+
 function unauthorized(response: ServerResponse): void {
   const body: UnauthorizedResponseBody = {
     error: 'Unauthorized',
@@ -107,6 +133,30 @@ export function createCatalogApiServer(options?: CreateCatalogApiServerOptions) 
     if (method === 'GET' && url === '/duck-of-the-day') {
       const date = options?.duckOfDayDateProvider?.() ?? new Date();
       sendJson(response, 200, getDuckOfTheDay(date, options?.catalogDataSourceOptions));
+      return;
+    }
+
+    if (method === 'GET' && url === '/quiz/questions') {
+      sendJson(response, 200, {
+        questions: getQuizQuestions(),
+      });
+      return;
+    }
+
+    if (method === 'POST' && url === '/quiz/result') {
+      try {
+        const body = await readJsonBody(request);
+        const result = evaluateQuiz(toQuizAnswers(body), options?.catalogDataSourceOptions);
+        sendJson(response, 200, result);
+      } catch (error) {
+        if (error instanceof QuizValidationError) {
+          reportError(response, error.statusCode, error.message);
+          return;
+        }
+
+        reportError(response, 500, 'Internal server error.');
+      }
+
       return;
     }
 

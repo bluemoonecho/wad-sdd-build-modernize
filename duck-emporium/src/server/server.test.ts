@@ -370,4 +370,116 @@ describe('catalog API server', () => {
     expect(body.duck).toBeUndefined();
     expect(body.emptyStateMessage).toBe('The pond is empty today, come back tomorrow.');
   });
+
+  it('returns multiple-choice quiz questions', async () => {
+    const { baseUrl } = await startServer();
+
+    const response = await fetch(`${baseUrl}/quiz/questions`);
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.questions).toHaveLength(6);
+    expect(body.questions[0].options.length).toBeGreaterThanOrEqual(2);
+  });
+
+  it('returns deterministic quiz recommendation and detail link', async () => {
+    const { baseUrl } = await startServer();
+
+    const answers = {
+      answers: [
+        { questionId: 'q1', optionId: 'q1a' },
+        { questionId: 'q2', optionId: 'q2a' },
+        { questionId: 'q3', optionId: 'q3a' },
+        { questionId: 'q4', optionId: 'q4a' },
+        { questionId: 'q5', optionId: 'q5a' },
+        { questionId: 'q6', optionId: 'q6a' },
+      ],
+    };
+
+    const firstResponse = await fetch(`${baseUrl}/quiz/result`, {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify(answers),
+    });
+
+    const secondResponse = await fetch(`${baseUrl}/quiz/result`, {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify(answers),
+    });
+
+    const firstBody = await firstResponse.json();
+    const secondBody = await secondResponse.json();
+
+    expect(firstResponse.status).toBe(200);
+    expect(secondResponse.status).toBe(200);
+    expect(firstBody.duck.id).toBe(secondBody.duck.id);
+    expect(firstBody.winningCategory).toBe('Adventure');
+    expect(firstBody.detailPath).toBe(`/ducks/${firstBody.duck.id}`);
+    expect(firstBody.message).toEqual(expect.any(String));
+  });
+
+  it('does not mutate catalog persistence when taking the quiz', async () => {
+    const { tempDirectoryPath, catalogFilePath } = createIsolatedCatalogFilePath();
+    tempDirectoryPaths.push(tempDirectoryPath);
+
+    const before = readFileSync(catalogFilePath, 'utf8');
+
+    const { baseUrl } = await startServer({
+      catalogFilePath,
+    });
+
+    const response = await fetch(`${baseUrl}/quiz/result`, {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({
+        answers: [
+          { questionId: 'q1', optionId: 'q1b' },
+          { questionId: 'q2', optionId: 'q2b' },
+          { questionId: 'q3', optionId: 'q3c' },
+          { questionId: 'q4', optionId: 'q4b' },
+          { questionId: 'q5', optionId: 'q5b' },
+          { questionId: 'q6', optionId: 'q6b' },
+        ],
+      }),
+    });
+
+    const after = readFileSync(catalogFilePath, 'utf8');
+
+    expect(response.status).toBe(200);
+    expect(after).toBe(before);
+  });
+
+  it('uses deterministic tie-break behavior for tied quiz scores', async () => {
+    const { baseUrl } = await startServer();
+
+    const response = await fetch(`${baseUrl}/quiz/result`, {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({
+        answers: [
+          { questionId: 'q1', optionId: 'q1a' },
+          { questionId: 'q2', optionId: 'q2c' },
+          { questionId: 'q3', optionId: 'q3c' },
+          { questionId: 'q4', optionId: 'q4d' },
+          { questionId: 'q5', optionId: 'q5a' },
+          { questionId: 'q6', optionId: 'q6c' },
+        ],
+      }),
+    });
+
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.winningCategory).toBe('Adventure');
+    expect(body.tieBreakRule).toContain('Adventure, Classic, Luxury, Party');
+  });
 });
