@@ -28,3 +28,11 @@ curl -i -X POST http://localhost:3000/admin/ducks \
 List ducks and confirm the new duck appears:
 
 curl -s http://localhost:3000/ducks
+
+## Story 7 duck of the day endpoint
+
+Fetch the daily featured duck:
+
+curl -s http://localhost:3000/duck-of-the-day
+
+Response includes a deterministic duck for the calendar day, a detail link path, or a friendly fallback when all ducks are sold out.

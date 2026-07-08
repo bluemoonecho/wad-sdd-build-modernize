@@ -83,7 +83,14 @@ export interface CreateDuckInput {
   initialStock: number;
 }
 
+export interface DuckOfDayResult {
+  duck?: DuckSummary;
+  detailPath?: string;
+  emptyStateMessage?: string;
+}
+
 export const CATALOG_EMPTY_STATE_MESSAGE = 'No duck matches your existential criteria.';
+export const DUCK_OF_THE_DAY_EMPTY_STATE_MESSAGE = 'The pond is empty today, come back tomorrow.';
 
 const currentDirectory = dirname(fileURLToPath(import.meta.url));
 const defaultCatalogFilePath = resolve(currentDirectory, 'catalog-data.json');
@@ -169,6 +176,10 @@ function toStockLevel(stockCount: number): StockLevel {
   return 'In stock';
 }
 
+function getUtcDayNumber(date: Date): number {
+  return Math.floor(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()) / 86400000);
+}
+
 export function listDucks(options?: CatalogDataSourceOptions): DuckSummary[] {
   return readCatalog(options).map(({ id, name, category, price, tagline }) => ({
     id,
@@ -251,6 +262,42 @@ export function addDuck(input: CreateDuckInput, options?: CatalogDataSourceOptio
     category: newDuck.category,
     price: newDuck.price,
     tagline: newDuck.tagline,
+  };
+}
+
+export function getDuckOfTheDay(
+  date: Date = new Date(),
+  options?: CatalogDataSourceOptions,
+): DuckOfDayResult {
+  const inStockDucks = readCatalog(options)
+    .filter((duck) => duck.stockCount > 0)
+    .map(({ id, name, category, price, tagline }) => ({
+      id,
+      name,
+      category,
+      price,
+      tagline,
+    }));
+
+  if (inStockDucks.length === 0) {
+    return {
+      emptyStateMessage: DUCK_OF_THE_DAY_EMPTY_STATE_MESSAGE,
+    };
+  }
+
+  const dayNumber = getUtcDayNumber(date);
+  const selectedIndex = ((dayNumber % inStockDucks.length) + inStockDucks.length) % inStockDucks.length;
+  const duck = inStockDucks[selectedIndex];
+
+  if (!duck) {
+    return {
+      emptyStateMessage: DUCK_OF_THE_DAY_EMPTY_STATE_MESSAGE,
+    };
+  }
+
+  return {
+    duck,
+    detailPath: `/ducks/${duck.id}`,
   };
 }
 

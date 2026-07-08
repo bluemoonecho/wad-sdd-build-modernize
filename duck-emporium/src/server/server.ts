@@ -3,6 +3,7 @@ import { createServer, type IncomingMessage, type ServerResponse } from 'node:ht
 import {
   addDuck,
   DuckValidationError,
+  getDuckOfTheDay,
   listDucks,
   type CatalogDataSourceOptions,
   type CreateDuckInput,
@@ -20,6 +21,7 @@ export interface CreateCatalogApiServerOptions {
   catalogDataSourceOptions?: CatalogDataSourceOptions;
   adminPassword?: string;
   logger?: Pick<Console, 'log'>;
+  duckOfDayDateProvider?: () => Date;
 }
 
 const JSON_CONTENT_TYPE = 'application/json; charset=utf-8';
@@ -99,6 +101,12 @@ export function createCatalogApiServer(options?: CreateCatalogApiServerOptions) 
       sendJson(response, 200, {
         ducks: listDucks(options?.catalogDataSourceOptions),
       });
+      return;
+    }
+
+    if (method === 'GET' && url === '/duck-of-the-day') {
+      const date = options?.duckOfDayDateProvider?.() ?? new Date();
+      sendJson(response, 200, getDuckOfTheDay(date, options?.catalogDataSourceOptions));
       return;
     }
 

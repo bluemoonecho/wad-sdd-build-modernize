@@ -1,9 +1,10 @@
-import { copyFileSync, mkdtempSync, rmSync } from 'node:fs';
+import { copyFileSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
+import type { DuckRecord } from '../catalog/catalog';
 import { createCatalogApiServer } from './server';
 
 const currentDirectory = dirname(fileURLToPath(import.meta.url));
@@ -21,13 +22,29 @@ function createIsolatedCatalogFilePath(): { tempDirectoryPath: string; catalogFi
   };
 }
 
+function writeCatalogFixture(catalogFilePath: string, records: DuckRecord[]): void {
+  writeFileSync(catalogFilePath, JSON.stringify(records, null, 2), 'utf8');
+}
+
+function readCatalogFixture(catalogFilePath: string): DuckRecord[] {
+  return JSON.parse(readFileSync(catalogFilePath, 'utf8')) as DuckRecord[];
+}
+
 describe('catalog API server', () => {
   const activeServers: Array<ReturnType<typeof createCatalogApiServer>> = [];
   const tempDirectoryPaths: string[] = [];
 
-  async function startServer() {
-    const { tempDirectoryPath, catalogFilePath } = createIsolatedCatalogFilePath();
-    tempDirectoryPaths.push(tempDirectoryPath);
+  async function startServer(options?: {
+    catalogFilePath?: string;
+    duckOfDayDateProvider?: () => Date;
+  }) {
+    let catalogFilePath = options?.catalogFilePath;
+
+    if (!catalogFilePath) {
+      const isolatedPaths = createIsolatedCatalogFilePath();
+      tempDirectoryPaths.push(isolatedPaths.tempDirectoryPath);
+      catalogFilePath = isolatedPaths.catalogFilePath;
+    }
 
     const logger = {
       log: vi.fn<(message: string) => void>(),
@@ -39,6 +56,7 @@ describe('catalog API server', () => {
         catalogFilePath,
       },
       logger,
+      duckOfDayDateProvider: options?.duckOfDayDateProvider,
     });
 
     await new Promise<void>((resolve, reject) => {
@@ -276,5 +294,80 @@ describe('catalog API server', () => {
     expect(message).toContain('Aurora Quack');
     expect(message).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/);
     expect(message).not.toContain('customer@example.com');
+  });
+
+  it('returns the same duck on the same day and a different duck on the next day', async () => {
+    const sameDay = new Date('2026-07-08T10:00:00.000Z');
+    const nextDay = new Date('2026-07-09T10:00:00.000Z');
+
+    const firstServer = await startServer({
+      duckOfDayDateProvider: () => sameDay,
+    });
+
+    const firstResponse = await fetch(`${firstServer.baseUrl}/duck-of-the-day`);
+    const secondResponse = await fetch(`${firstServer.baseUrl}/duck-of-the-day`);
+
+    expect(firstResponse.status).toBe(200);
+    expect(secondResponse.status).toBe(200);
+
+    const firstBody = await firstResponse.json();
+    const secondBody = await secondResponse.json();
+
+    expect(firstBody.duck.id).toBe(secondBody.duck.id);
+
+    const nextDayServer = await startServer({
+      duckOfDayDateProvider: () => nextDay,
+    });
+    const nextDayResponse = await fetch(`${nextDayServer.baseUrl}/duck-of-the-day`);
+    const nextDayBody = await nextDayResponse.json();
+
+    expect(nextDayResponse.status).toBe(200);
+    expect(nextDayBody.duck.id).not.toBe(firstBody.duck.id);
+  });
+
+  it('skips sold-out ducks and includes a link to the detail page', async () => {
+    const { tempDirectoryPath, catalogFilePath } = createIsolatedCatalogFilePath();
+    tempDirectoryPaths.push(tempDirectoryPath);
+
+    const fixture = readCatalogFixture(catalogFilePath).map((duck, index) => ({
+      ...duck,
+      stockCount: index === 1 ? 3 : 0,
+    }));
+    writeCatalogFixture(catalogFilePath, fixture);
+
+    const { baseUrl } = await startServer({
+      catalogFilePath,
+      duckOfDayDateProvider: () => new Date('2026-07-08T10:00:00.000Z'),
+    });
+
+    const response = await fetch(`${baseUrl}/duck-of-the-day`);
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.duck.id).toBe(fixture[1]?.id);
+    expect(body.detailPath).toBe(`/ducks/${fixture[1]?.id}`);
+  });
+
+  it('returns a friendly fallback when all ducks are sold out', async () => {
+    const { tempDirectoryPath, catalogFilePath } = createIsolatedCatalogFilePath();
+    tempDirectoryPaths.push(tempDirectoryPath);
+
+    const fixture = readCatalogFixture(catalogFilePath).map((duck) => ({
+      ...duck,
+      stockCount: 0,
+    }));
+    writeCatalogFixture(catalogFilePath, fixture);
+
+    const { baseUrl } = await startServer({
+      catalogFilePath,
+      duckOfDayDateProvider: () => new Date('2026-07-08T10:00:00.000Z'),
+    });
+
+    const response = await fetch(`${baseUrl}/duck-of-the-day`);
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.duck).toBeUndefined();
+    expect(body.emptyStateMessage).toBe('The pond is empty today, come back tomorrow.');
   });
 });
