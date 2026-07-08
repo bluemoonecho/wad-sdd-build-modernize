@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "vitest run"
+    "test": "vitest run",
+    "start:api": "tsx src/server/server.ts"
   },
   "keywords": [],
   "author": "",
