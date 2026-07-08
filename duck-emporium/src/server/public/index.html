@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Rubber Duck Emporium</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Space+Grotesk:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="bg-shape bg-shape-a"></div>
+    <div class="bg-shape bg-shape-b"></div>
+
+    <header class="hero">
+      <p class="hero-kicker">Story 9: Browser Frontend</p>
+      <h1>Rubber Duck Emporium</h1>
+      <p class="hero-copy">Browse, quiz, cart, and checkout without leaving your browser.</p>
+      <div id="global-error" class="message error hidden" role="alert"></div>
+    </header>
+
+    <main class="layout">
+      <section class="panel spotlight" aria-labelledby="duck-day-title">
+        <h2 id="duck-day-title">Duck of the Day</h2>
+        <div id="duck-day-content" class="duck-day-content"></div>
+      </section>
+
+      <section class="panel" aria-labelledby="catalog-title">
+        <h2 id="catalog-title">Catalog</h2>
+        <form id="filters-form" class="filters" autocomplete="off">
+          <input id="query-input" name="query" type="search" placeholder="Search by vibe, name, or phrase" />
+          <select id="category-input" name="category">
+            <option value="">All categories</option>
+          </select>
+          <div class="price-grid">
+            <input id="min-price-input" name="minPrice" type="number" min="0" step="0.01" placeholder="Min" />
+            <input id="max-price-input" name="maxPrice" type="number" min="0" step="0.01" placeholder="Max" />
+          </div>
+          <button type="submit" class="btn">Apply</button>
+        </form>
+        <p id="catalog-empty" class="message muted hidden"></p>
+        <div id="catalog-grid" class="catalog-grid"></div>
+      </section>
+
+      <section class="panel" aria-labelledby="detail-title">
+        <h2 id="detail-title">Duck Detail</h2>
+        <div id="detail-content" class="detail-content muted">Pick a duck to see full details.</div>
+      </section>
+
+      <section class="panel" aria-labelledby="cart-title">
+        <h2 id="cart-title">Cart</h2>
+        <div id="cart-content" class="cart-content"></div>
+        <button id="open-checkout" class="btn" type="button">Proceed to Checkout</button>
+      </section>
+
+      <section class="panel" aria-labelledby="checkout-title">
+        <h2 id="checkout-title">Checkout</h2>
+        <form id="checkout-form" class="stack" autocomplete="on">
+          <input name="shippingName" placeholder="Shipping name" required />
+          <input name="shippingEmail" type="email" placeholder="Email" required />
+          <input name="shippingAddress" placeholder="Address" required />
+          <input name="mockedCardDetails" placeholder="Mocked card number" required />
+          <button type="submit" class="btn">Place Mock Order</button>
+        </form>
+        <div id="checkout-message" class="message hidden" role="status"></div>
+      </section>
+
+      <section class="panel" aria-labelledby="quiz-title">
+        <h2 id="quiz-title">Which Duck Are You?</h2>
+        <form id="quiz-form" class="stack"></form>
+        <button id="quiz-submit" class="btn" type="button">Reveal My Duck</button>
+        <div id="quiz-result" class="message hidden"></div>
+      </section>
+    </main>
+
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>

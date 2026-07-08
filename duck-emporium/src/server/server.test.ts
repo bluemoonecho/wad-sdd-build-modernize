@@ -9,9 +9,14 @@ import { createCatalogApiServer } from './server';
 
 const currentDirectory = dirname(fileURLToPath(import.meta.url));
 
-function createIsolatedCatalogFilePath(): { tempDirectoryPath: string; catalogFilePath: string } {
+function createIsolatedCatalogFilePath(): {
+  tempDirectoryPath: string;
+  catalogFilePath: string;
+  ordersFilePath: string;
+} {
   const tempDirectoryPath = mkdtempSync(join(tmpdir(), 'duck-emporium-story-6-'));
   const catalogFilePath = join(tempDirectoryPath, 'catalog-data.json');
+  const ordersFilePath = join(tempDirectoryPath, 'orders-data.json');
   const sourceCatalogFilePath = join(currentDirectory, '..', 'catalog', 'catalog-data.json');
 
   copyFileSync(sourceCatalogFilePath, catalogFilePath);
@@ -19,6 +24,7 @@ function createIsolatedCatalogFilePath(): { tempDirectoryPath: string; catalogFi
   return {
     tempDirectoryPath,
     catalogFilePath,
+    ordersFilePath,
   };
 }
 
@@ -36,14 +42,23 @@ describe('catalog API server', () => {
 
   async function startServer(options?: {
     catalogFilePath?: string;
+    ordersFilePath?: string;
     duckOfDayDateProvider?: () => Date;
   }) {
     let catalogFilePath = options?.catalogFilePath;
+    let ordersFilePath = options?.ordersFilePath;
 
-    if (!catalogFilePath) {
+    if (!catalogFilePath && !ordersFilePath) {
       const isolatedPaths = createIsolatedCatalogFilePath();
       tempDirectoryPaths.push(isolatedPaths.tempDirectoryPath);
       catalogFilePath = isolatedPaths.catalogFilePath;
+      ordersFilePath = isolatedPaths.ordersFilePath;
+    } else if (!catalogFilePath && ordersFilePath) {
+      const isolatedPaths = createIsolatedCatalogFilePath();
+      tempDirectoryPaths.push(isolatedPaths.tempDirectoryPath);
+      catalogFilePath = isolatedPaths.catalogFilePath;
+    } else if (catalogFilePath && !ordersFilePath) {
+      ordersFilePath = join(dirname(catalogFilePath), 'orders-data.json');
     }
 
     const logger = {
@@ -54,6 +69,9 @@ describe('catalog API server', () => {
       adminPassword: 'quack-secret',
       catalogDataSourceOptions: {
         catalogFilePath,
+      },
+      orderDataSourceOptions: {
+        ordersFilePath,
       },
       logger,
       duckOfDayDateProvider: options?.duckOfDayDateProvider,
@@ -481,5 +499,121 @@ describe('catalog API server', () => {
     expect(response.status).toBe(200);
     expect(body.winningCategory).toBe('Adventure');
     expect(body.tieBreakRule).toContain('Adventure, Classic, Luxury, Party');
+  });
+
+  it('serves the SPA frontend assets', async () => {
+    const { baseUrl } = await startServer();
+
+    const indexResponse = await fetch(`${baseUrl}/`);
+    const appScriptResponse = await fetch(`${baseUrl}/app.js`);
+    const stylesheetResponse = await fetch(`${baseUrl}/styles.css`);
+
+    expect(indexResponse.status).toBe(200);
+    expect(indexResponse.headers.get('content-type')).toContain('text/html');
+    expect(await indexResponse.text()).toContain('Rubber Duck Emporium');
+
+    expect(appScriptResponse.status).toBe(200);
+    expect(appScriptResponse.headers.get('content-type')).toContain('text/javascript');
+
+    expect(stylesheetResponse.status).toBe(200);
+    expect(stylesheetResponse.headers.get('content-type')).toContain('text/css');
+  });
+
+  it('returns a full duck detail response at /ducks/:id', async () => {
+    const { baseUrl } = await startServer();
+
+    const response = await fetch(`${baseUrl}/ducks/captain-quack`);
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.duck.id).toBe('captain-quack');
+    expect(body.duck.longDescription).toEqual(expect.any(String));
+    expect(body.duck.stockLevel).toEqual(expect.any(String));
+  });
+
+  it('supports cart item add/update/remove endpoints', async () => {
+    const { baseUrl } = await startServer();
+
+    const addResponse = await fetch(`${baseUrl}/cart/items`, {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({ duckId: 'captain-quack', quantity: 2 }),
+    });
+
+    const addedCart = await addResponse.json();
+
+    expect(addResponse.status).toBe(200);
+    expect(addedCart.items).toHaveLength(1);
+    expect(addedCart.items[0].quantity).toBe(2);
+
+    const updateResponse = await fetch(`${baseUrl}/cart/items/captain-quack`, {
+      method: 'PATCH',
+      headers: {
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({ quantity: 3 }),
+    });
+
+    const updatedCart = await updateResponse.json();
+    expect(updateResponse.status).toBe(200);
+    expect(updatedCart.items[0].quantity).toBe(3);
+
+    const removeResponse = await fetch(`${baseUrl}/cart/items/captain-quack`, {
+      method: 'DELETE',
+    });
+    const removedCart = await removeResponse.json();
+
+    expect(removeResponse.status).toBe(200);
+    expect(removedCart.items).toHaveLength(0);
+  });
+
+  it('returns checkout validation error and successful confirmation payload', async () => {
+    const { baseUrl } = await startServer();
+
+    const emptyCheckout = await fetch(`${baseUrl}/checkout`, {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({
+        shippingName: 'Quincy',
+        shippingEmail: 'quincy@example.com',
+        shippingAddress: '42 Bubble Street',
+        mockedCardDetails: '4111-1111-1111-1111',
+      }),
+    });
+
+    expect(emptyCheckout.status).toBe(400);
+    expect((await emptyCheckout.json()).error.toLowerCase()).toContain('empty cart');
+
+    await fetch(`${baseUrl}/cart/items`, {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({ duckId: 'classic-yellow', quantity: 1 }),
+    });
+
+    const successCheckout = await fetch(`${baseUrl}/checkout`, {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({
+        shippingName: 'Quincy Quacker',
+        shippingEmail: 'quincy@example.com',
+        shippingAddress: '42 Bubble Street',
+        mockedCardDetails: '4111-1111-1111-1111',
+      }),
+    });
+
+    const confirmation = await successCheckout.json();
+
+    expect(successCheckout.status).toBe(200);
+    expect(confirmation.orderId).toEqual(expect.any(String));
+    expect(confirmation.summary.items).toHaveLength(1);
+    expect(confirmation.summary.total).toBeGreaterThan(0);
   });
 });

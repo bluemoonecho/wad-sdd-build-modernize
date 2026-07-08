@@ -57,3 +57,22 @@ curl -s -X POST http://localhost:3000/quiz/result \
       {"questionId": "q6", "optionId": "q6a"}
     ]
   }'
+
+## Story 9 web frontend
+
+Open the browser UI served by the same application:
+
+http://localhost:3000/
+
+The SPA calls these same-origin JSON endpoints:
+
+- GET /ducks (supports query, category, minPrice, maxPrice)
+- GET /ducks/:duckId
+- GET /duck-of-the-day
+- GET /cart
+- POST /cart/items
+- PATCH /cart/items/:duckId
+- DELETE /cart/items/:duckId
+- POST /checkout
+- GET /quiz/questions
+- POST /quiz/result
